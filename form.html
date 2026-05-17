@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SimplifIQ — Get your free company audit</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="page">
+    <div class="hero">
+      <div class="logo">SimplifIQ</div>
+      <h1>Get your free company audit</h1>
+      <p>Submit your details and we'll generate a personalised insights report and send it to your inbox instantly.</p>
+    </div>
+
+    <form id="lead-form" class="card">
+      <div class="form-row two-col">
+        <div class="field">
+          <label for="name">Your name *</label>
+          <input type="text" id="name" name="name" placeholder="Priya Sharma" required>
+        </div>
+        <div class="field">
+          <label for="role">Your role</label>
+          <input type="text" id="role" name="role" placeholder="CEO / Founder / Manager">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="email">Work email *</label>
+        <input type="email" id="email" name="email" placeholder="you@company.com" required>
+      </div>
+
+      <div class="form-row two-col">
+        <div class="field">
+          <label for="company">Company name *</label>
+          <input type="text" id="company" name="company" placeholder="Acme Corp" required>
+        </div>
+        <div class="field">
+          <label for="website">Company website *</label>
+          <input type="url" id="website" name="website" placeholder="https://acme.com" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="industry">Industry *</label>
+        <select id="industry" name="industry" required>
+          <option value="">Select your industry</option>
+          <option>Finance &amp; Accounting</option>
+          <option>SaaS / Technology</option>
+          <option>Consulting</option>
+          <option>Healthcare</option>
+          <option>E-commerce / Retail</option>
+          <option>Real Estate</option>
+          <option>Legal</option>
+          <option>Marketing &amp; Advertising</option>
+          <option>Manufacturing</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="message">Anything specific you'd like us to focus on?</label>
+        <textarea id="message" name="message" rows="3"
+          placeholder="e.g. We struggle with manual lead follow-up..."></textarea>
+      </div>
+
+      <button type="submit" id="submit-btn">
+        <span id="btn-text">Get my free audit report</span>
+        <span id="btn-spinner" class="spinner hidden"></span>
+      </button>
+    </form>
+
+    <div id="success-card" class="card success-card hidden">
+      <div class="success-icon">&#10003;</div>
+      <h2>Report on its way!</h2>
+      <p id="success-msg">Your personalised audit has been sent to your inbox. Check your email in the next minute.</p>
+    </div>
+
+    <div id="error-banner" class="error-banner hidden"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('lead-form');
+    const btn  = document.getElementById('submit-btn');
+    const spinner = document.getElementById('btn-spinner');
+    const btnText = document.getElementById('btn-text');
+    const successCard = document.getElementById('success-card');
+    const errorBanner = document.getElementById('error-banner');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBanner.classList.add('hidden');
+      btn.disabled = true;
+      btnText.textContent = 'Generating your report...';
+      spinner.classList.remove('hidden');
+
+      const data = new FormData(form);
+
+      try {
+        const res  = await fetch('/submit', { method: 'POST', body: data });
+        const json = await res.json();
+
+        if (json.status === 'success') {
+          form.classList.add('hidden');
+          successCard.classList.remove('hidden');
+          document.getElementById('success-msg').textContent =
+            `Your personalised audit for ${data.get('company')} has been sent to ${data.get('email')}. Check your inbox!`;
+        } else {
+          const msgs = json.errors ? json.errors.join(', ') : json.message;
+          errorBanner.textContent = 'Error: ' + msgs;
+          errorBanner.classList.remove('hidden');
+          btn.disabled = false;
+          btnText.textContent = 'Get my free audit report';
+          spinner.classList.add('hidden');
+        }
+      } catch (err) {
+        errorBanner.textContent = 'Something went wrong. Please try again.';
+        errorBanner.classList.remove('hidden');
+        btn.disabled = false;
+        btnText.textContent = 'Get my free audit report';
+        spinner.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
